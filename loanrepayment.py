@@ -13,6 +13,8 @@ from sklearn.ensemble import BaggingClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.feature_selection import mutual_info_regression
+from xgboost import XGBClassifier
+from sklearn.metrics import mean_absolute_error
 
 
 def get_data_described(fileroute):
@@ -116,11 +118,25 @@ def model_creating_prediction(data):
     print(classific)
     print(confusion_matrix1)
 
+def calculate_xgboost(data):
+    features = data.drop('not.fully.paid', axis = "columns")
+    labels = data['not.fully.paid']
+
+    X_train, x_test, y_train, y_test = train_test_split(features, labels, random_state=0)
+    xgb_model = XGBClassifier(n_estimators = 200, learning_rate = 0.5, 
+                              early_stopping_rounds = 5,random_state = 0)
+    xgb_model.fit(X_train, y_train, eval_set =[(x_test, y_test)], verbose = False)
+    predictions = xgb_model.predict(x_test)
+    print(predictions)
+    mae = mean_absolute_error(predictions , y_test)
+    print(mae)
+
 data = get_data_described('data/loan_data.csv')
-show_mutual_information(data)
+#show_mutual_information(data)
 #check_data_null_values(data)
-#data = encode_categoricald_data(data,'purpose')
+data = encode_categoricald_data(data,'purpose')
 #model_creating_prediction(data)
 #data_visaulization(data = data,type = 3)
+calculate_xgboost(data)
 
 
