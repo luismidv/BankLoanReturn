@@ -11,6 +11,8 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, confu
 from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import BaggingClassifier
 from sklearn.model_selection import cross_val_score
+from sklearn.feature_selection import mutual_info_classif
+from sklearn.feature_selection import mutual_info_regression
 
 
 def get_data_described(fileroute):
@@ -36,6 +38,31 @@ def encode_categoricald_data(data, col):
     data[col] = encoder.fit_transform(data[col])
     print(data.head(5))
     return data
+
+def show_mutual_information(data):
+    """PRITING MUTUAL INFORMATION FOR THIS DATASET IN ORDER TO HAVE
+       A HAVE AN APPROACH TO HOW EACH FEATURE IS GOING TO AFFECT THE
+       PREDICTION"""
+    features = data.copy()
+    labels = features.pop("not.fully.paid")
+
+    for colname in features.select_dtypes("object"):
+        features[colname], _ = features[colname].factorize()
+    
+    discrete_features = features.dtypes == int
+    mi_scores = mutual_info_classif(features,labels, discrete_features = discrete_features)
+    mi_scores = pd.Series(mi_scores, name = "MI scores", index = features.columns)
+    mi_scores = mi_scores.sort_values(ascending=True)
+    width = np.arange(len(mi_scores))
+    ticks = list(mi_scores.index)
+    plt.barh(width, mi_scores)
+    plt.yticks(width,ticks)
+    plt.title('Mutual info regression')
+    #sns.relplot(x ='int.rate', y = "not.fully.paid", data = data )
+    plt.show()
+
+
+
 
 def data_visaulization(data = None, column = None, condition = None, type =None):
     """FUNCTION MADE TO CHECK DIFFERENT TYPE OF PLOTS DEPENDING ON PARAMETERS"""
@@ -90,9 +117,10 @@ def model_creating_prediction(data):
     print(confusion_matrix1)
 
 data = get_data_described('data/loan_data.csv')
-check_data_null_values(data)
-data = encode_categoricald_data(data,'purpose')
-model_creating_prediction(data)
+show_mutual_information(data)
+#check_data_null_values(data)
+#data = encode_categoricald_data(data,'purpose')
+#model_creating_prediction(data)
 #data_visaulization(data = data,type = 3)
 
 
